@@ -44,7 +44,7 @@ public abstract class ArsUntypedActor extends UntypedActor {
     protected void checkMaxChildren(int maxChildrenExpected) {
     	int numChildrenActual = getContext().children().size();
     	if(numChildrenActual > maxChildrenExpected) {
-    		logger.warn(getSelf().path() + " has " + numChildrenActual + " while we expected no more than " + maxChildrenExpected);
+    		logger.error(getSelf().path() + " has " + numChildrenActual + " while we expected no more than " + maxChildrenExpected);
     	}
     }
     

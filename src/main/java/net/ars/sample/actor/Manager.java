@@ -1,5 +1,6 @@
 package net.ars.sample.actor;
 
+import net.ars.sample.actor.naming.ActorNamingStrategy;
 import akka.actor.ActorRef;
 import akka.actor.InvalidActorNameException;
 import akka.actor.Props;
@@ -7,9 +8,11 @@ import akka.actor.Props;
 public class Manager extends ArsUntypedSupervisorActor {
 	
 	public static final int NUM_WORKER = 10;
+	private ActorNamingStrategy namingStrategy;
 	
-	public Manager() {
+	public Manager(ActorNamingStrategy childNamingStrategy) {
 		this.maxNumChildren = NUM_WORKER;
+		this.namingStrategy = childNamingStrategy;
 	}
 
 	@Override
@@ -22,6 +25,7 @@ public class Manager extends ArsUntypedSupervisorActor {
 		}
     	super.postRestart(reason);
     	getSelf().tell(Message.RESTART, getSelf());
+    	// SOLUTION: (1) : comment previous line and uncomment the next line
     	// start();
     }
 	
@@ -47,18 +51,19 @@ public class Manager extends ArsUntypedSupervisorActor {
 	}
 		
 	private void start() {
-		//if(getContext().children().size() == 0) {
+		// SOLUTION: (2) : uncomment the surrounding if condition below
+		// if(getContext().children().size() == 0) {
 			for(int count = 0; count < maxNumChildren; count++) {
-				createAndWatchChildActor(Props.create(Worker.class), "worker-" + (count+1));
+				createAndWatchChildActor(Props.create(Worker.class), namingStrategy.getActorName("worker", count+1));
 			}
-			
-			scheduleHealthCheck();
 			
 			// we have the children created - Lets get them started too
 			for(ActorRef child : getContext().getChildren()) {
 				child.tell(Message.BEGIN, getSelf());
 			}
-		//}
+		// }
+			
+		checkMaxChildren(maxNumChildren);
 	}
 	
 	private void bomb() {
